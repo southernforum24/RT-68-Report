@@ -19,7 +19,30 @@ export default function Dashboard() {
   const [isDownloading, setIsDownloading] = useState(false);
   
   const reportRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLElement>(null);
+  const [scale, setScale] = useState(1);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (wrapperRef.current) {
+        const wrapperWidth = wrapperRef.current.offsetWidth;
+        const targetWidth = 794;
+        const padding = 32; // 16px padding on each side
+        const availableWidth = wrapperWidth - padding;
+        
+        if (availableWidth < targetWidth) {
+          setScale(availableWidth / targetWidth);
+        } else {
+          setScale(1);
+        }
+      }
+    };
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
 
   useEffect(() => {
     const studentData = localStorage.getItem('selectedStudent');
@@ -176,16 +199,25 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="w-full overflow-x-auto px-4 py-8 flex justify-center">
+      <main className="w-full px-4 py-8 flex justify-center overflow-hidden" ref={wrapperRef}>
         
-        {/* Printable Report Container */}
+        {/* Scaling Wrapper for Responsive View */}
         <div 
-          id="pdf-report-container"
-          ref={reportRef} 
-          className="bg-white rounded-[40px] shadow-xl overflow-hidden border border-slate-100 shrink-0 flex flex-col"
-          style={{ width: '794px', height: '1411px', padding: '40px' }} // 9:16 aspect ratio
+          className="origin-top flex justify-center"
+          style={{ 
+            transform: `scale(${scale})`, 
+            height: `${1411 * scale}px`,
+            width: '794px'
+          }}
         >
-          {/* Report Header */}
+          {/* Printable Report Container */}
+          <div 
+            id="pdf-report-container"
+            ref={reportRef} 
+            className="bg-white rounded-[40px] shadow-xl overflow-hidden border border-slate-100 shrink-0 flex flex-col"
+            style={{ width: '794px', height: '1411px', padding: '40px' }} // 9:16 aspect ratio
+          >
+            {/* Report Header */}
           <div className="flex justify-between items-center mb-6 bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-700 py-4 px-6 rounded-3xl shadow-lg">
             <div className="w-20 h-20 flex items-center justify-center bg-transparent shrink-0 relative">
               {obecLogo ? (
@@ -348,14 +380,15 @@ export default function Dashboard() {
           
           {/* Footer Note */}
           <div className="mt-auto text-center text-slate-400 text-xs font-medium border-t border-slate-100 pt-6">
-            พัฒนาโดยฝ่ายวิชาการ โรงเรียนบ้านตะโละ - @2569
+            พัฒนาโดยฝ่ายวิชาการ โรงเรียนบ้านตะโละ @2569
           </div>
+        </div>
         </div>
 
       </main>
       
       <footer className="py-6 text-center text-slate-400 text-xs font-medium border-t border-slate-200 bg-white mt-auto">
-        พัฒนาโดยฝ่ายวิชาการ โรงเรียนบ้านตะโละ - @2569
+        พัฒนาโดยฝ่ายวิชาการ โรงเรียนบ้านตะโละ @2569
       </footer>
     </div>
   );
